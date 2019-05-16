@@ -21,7 +21,7 @@ class ChatFilter:
 
     @commands.command(aliases=['stfutoken', "tstfu"], hidden=True, name="tokenstfu")
     @perms.is_token_stfu_controller()
-    async def token_stfu(self, ctx):
+    async def token_stfu_toggle_command(self, ctx):
         """Toggles Auto-Deletion of all Token's new messages"""
         self.token_stfu = not self.token_stfu
         await ctx.send("Token STFU is now {}".format(self.token_stfu))
@@ -51,7 +51,6 @@ class ChatFilter:
                         last_warn_time = datetime.now() - self.last_token_msg_time
                         if last_warn_time.seconds >= 20:
                             await msg.channel.send("{} STFU!".format(msg.author.mention))
-
 
     async def invite_blocker(self, msg):
         """https://discord.gg/"""
