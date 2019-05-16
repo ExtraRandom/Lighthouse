@@ -3,6 +3,7 @@ import os
 from discord.ext import commands
 from datetime import datetime
 import json
+from cogs.utils import perms
 
 
 def get_prefix(d_bot, message):
@@ -13,19 +14,21 @@ def get_prefix(d_bot, message):
 class BlueBot(commands.Bot):
     def __init__(self):
         self.base_dir = os.path.dirname(os.path.realpath(__file__))
+        self.settings_file = os.path.join(self.base_dir, "settings.json")
         self.last_token_msg_time = None
         self.last_token_msg = None
 
         super().__init__(
-            command_prefix=get_prefix,
+            command_prefix=get_prefix,  # TODO add customisable prefix
             description="THE LIGHTHOUSE BOT\n"
                         "Developed by @Extra_Random#2564\n"
-                        "Source Code: "
-                        "",
-                        # "https://discord.gg/EaBKarE",
+                        "Source Code: https://github.com/ExtraRandom/Lighthouse",
             pm_help=False
             )
-        # self.add_command()
+
+        self.add_command(self.load)
+        self.add_command(self.unload)
+        self.add_command(self.cog_list)
 
     async def on_ready(self):
         login_time = datetime.now()
@@ -65,7 +68,7 @@ class BlueBot(commands.Bot):
         else:
             """Error logging goes here"""
             """For now tho lets just say there was an error"""
-            channel.send("Error:\n{}".format(error))
+            await channel.send("Error:\n{}".format(error))
             return
 
     @staticmethod
@@ -146,14 +149,14 @@ class BlueBot(commands.Bot):
     def run(self):
         first_run = False
         settings_data = {}
-        settings_filepath = os.path.join(self.base_dir, "settings.json")
+        settings_file_path = os.path.join(self.base_dir, "settings.json")
 
         """Check if this is first run"""
-        if os.path.isfile(settings_filepath) is False:
+        if os.path.isfile(settings_file_path) is False:
             print("First Time Run")
             first_run = True
         else:
-            settings_data = self.json_read(settings_filepath)
+            settings_data = self.json_read(settings_file_path)
             if settings_data is None:
                 print("Error Reading settings.json, Please check the file.")
                 # first_run = True
@@ -189,16 +192,68 @@ class BlueBot(commands.Bot):
         else:
             token = settings_data['keys']['discord-token']
 
-        if self.json_write(settings_data, settings_filepath) is False:
+        if self.json_write(settings_data, settings_file_path) is False:
             # Failed to write settings.json
             print("Failed to write settings.json, that's probably not good")
             return
 
         if token is None:
-            print("Discord Bot Token isn't set! Please go to {} and set it!".format(settings_filepath))
+            print("Discord Bot Token isn't set! Please go to {} and set it!".format(settings_file_path))
             return
         else:
             super().run(token)
+
+    @commands.command(hidden=True)
+    @perms.is_bot_owner()
+    async def load(self, ctx, *, cog: str):
+        """Load a cog"""
+        try:
+            self.load_extension("cogs.{}".format(cog))
+        except Exception as e:
+            await ctx.send("Failed to load cog '{}'. Reason: {}.".format(cog, type(e).__name__))
+            return
+
+        # Update settings
+        data = self.json_read(self.settings_file)
+        data['cogs'][cog] = True
+        self.json_write(data, self.settings_file)
+
+    @commands.command(hidden=True)
+    @perms.is_bot_owner()
+    async def unload(self, ctx, *, cog: str):
+        """Unload a cog"""
+        try:
+            self.unload_extension("cogs.{}".format(cog))
+        except Exception as e:
+            await ctx.send("Failed to unload cog '{}'. Reason: {}.".format(cog, type(e).__name__))
+            return
+
+        # Updates settings
+        data = self.json_read(self.settings_file)
+        data['cogs'][cog] = False
+        self.json_write(data, self.settings_file)
+
+    @commands.command(hidden=True, name="cogs")
+    @perms.is_bot_owner()
+    async def cog_list(self, ctx):
+        """List all loaded and unloaded cogs"""
+        ext_list = self.extensions
+        loaded = []
+        unloaded = []
+        for cog in ext_list:
+            loaded.append(str(cog).replace("cogs.", ""))
+
+        cogs_in_folder = self.get_cogs_in_folder()
+        for cog_f in cogs_in_folder:
+            if cog_f not in loaded:
+                unloaded.append(cog_f.replace(".py", ""))
+
+        await ctx.send("```diff\n"
+                       "+ Loaded Cogs:\n{}\n\n"
+                       "- Unloaded Cogs:\n{}"
+                       "```"
+                       "".format(", ".join(sorted(loaded)),
+                                 ", ".join(sorted(unloaded))))
 
 
 if __name__ == '__main__':

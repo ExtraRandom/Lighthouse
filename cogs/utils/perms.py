@@ -15,5 +15,9 @@ def is_server_owner():
     return commands.check(predicate)
 
 
-
-
+def is_token_stfu_controller():
+    def predicate(ctx):
+        return ctx.message.author.id in [
+            92562410493202432, 414585192896921600, 545374585869303828
+        ]
+    return commands.check(predicate)
