@@ -209,6 +209,7 @@ class BlueBot(commands.Bot):
         """Load a cog"""
         try:
             self.load_extension("cogs.{}".format(cog))
+            await ctx.send("Cog '{}' loaded successfully".format(cog))
         except Exception as e:
             await ctx.send("Failed to load cog '{}'. Reason: {}.".format(cog, type(e).__name__))
             return
@@ -224,6 +225,7 @@ class BlueBot(commands.Bot):
         """Unload a cog"""
         try:
             self.unload_extension("cogs.{}".format(cog))
+            await ctx.send("Cog '{}' unloaded successfully".format(cog))
         except Exception as e:
             await ctx.send("Failed to unload cog '{}'. Reason: {}.".format(cog, type(e).__name__))
             return
