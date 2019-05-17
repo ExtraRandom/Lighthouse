@@ -15,8 +15,6 @@ class BlueBot(commands.Bot):
     def __init__(self):
         self.base_dir = os.path.dirname(os.path.realpath(__file__))
         self.settings_file = os.path.join(self.base_dir, "settings.json")
-        self.last_token_msg_time = None
-        self.last_token_msg = None
 
         super().__init__(
             command_prefix=get_prefix,  # TODO add customisable prefix
@@ -49,6 +47,41 @@ class BlueBot(commands.Bot):
             return
         else:
             await self.process_commands(msg)
+
+    async def on_member_join(self, user):
+        channel = None
+        guild = user.guild
+
+        if guild.id == 571921441793245194:
+            channel = discord.utils.get(guild.channels, id=578964342725148712)
+        elif guild.id == 223132558609612810:
+            channel = discord.utils.get(guild.channels, id=223132558609612810)
+
+        created = user.created_at.strftime("%d-%b-%Y at %H:%M")
+        joined = user.joined_at.strftime("%d-%b-%Y at %H:%M")
+
+        user_embed = discord.Embed(title="{}#{}".format(user.name, user.discriminator),
+                                   colour=discord.Colour.green(),
+                                   description="User Joined")
+
+        user_embed.set_thumbnail(url=user.avatar_url)
+
+        user_embed.add_field(name="Joined Server:",
+                             value="{} (UTC)".format(joined))
+
+        user_embed.add_field(name="Joined Discord:",
+                             value="{} (UTC)".format(created))
+
+        user_embed.add_field(name="User ID:",
+                             value="{}".format(user.id))
+
+        user_embed.add_field(name="Bot:",
+                             value="{}".format(user.bot))
+
+        user_embed.add_field(name="Avatar URL:",
+                             value="{}".format(user.avatar_url))
+
+        await channel.send(embed=user_embed)
 
     async def on_command_error(self, ctx, error):
         channel = ctx.message.channel

@@ -38,13 +38,8 @@ class Owner:
 
             login_time = datetime.strptime(data['info']['last-login'], "%Y-%m-%d %H:%M:%S.%f")
             now = datetime.now()
-
-            td = timedelta.total_seconds(now - login_time)
-            td = int(td)
-
-            m, s = divmod(td, 60)
-            h, m = divmod(m, 60)
-            uptime = "%d:%02d:%02d" % (h, m, s)
+            difference = int(round(now.timestamp() - login_time.timestamp()))
+            uptime = str(timedelta(seconds=difference))
 
             await ctx.send("Bot Uptime: {}".format(uptime))
 
