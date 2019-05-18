@@ -28,6 +28,7 @@ class ChatFilter:
     @commands.command(name="tokenmode", hidden=True, aliases=["modetoken", "stfumode"])
     @perms.is_token_stfu_controller()
     async def token_stfu_mode_toggle(self, ctx):
+        """Toggle between deleting all messages or deleting messages with bad words in"""
         self.token_stfu_all = not self.token_stfu_all
         await ctx.send("Token STFU - Delete all msgs - is now {}".format(self.token_stfu))
 
@@ -62,12 +63,19 @@ class ChatFilter:
 
     async def token_stfu_enforcer(self, msg):
         if msg.author.id == 328310056754085888:  # 92562410493202432:   # id for testing
-            if msg.channel.id in [575848857926107136, 223132558609612810]:  # TODO add other channels to block
+            if msg.channel.id in [575848857926107136, 571941061971148811, 572180482217738266, 575726099305070637,
+                                  572266808145477642, 572202300798402592, 572268078004568094, 571940696286560277,
+                                  572185641744334859, 572184547328917514, 573730881269661716,
+                                  223132558609612810]:
                 if self.token_stfu is True:
+                    msg_fmt = str(msg.clean_content).lower()
                     if self.token_stfu_all is True:
-                        await msg.delete()
+                        if msg_fmt.startswith("-ew") or msg_fmt.startswith("-hate") or msg_fmt.startswith("-stfy") or msg_fmt.startswith("-tired") or msg_fmt.startswith("-fuckyou") or msg_fmt.startswith("-gigaban") or msg_fmt.startswith("-gigagay") or msg_fmt.startswith("-tokenstop"):
+                            pass
+                        else:
+                            await msg.delete()
                     else:
-                        msg_fmt = str(msg.clean_content).lower()
+
                         if msg_fmt in self.bad_words or msg_fmt in self.bad_words_temp:
                             await msg.delete()
 

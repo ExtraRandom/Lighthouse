@@ -85,6 +85,7 @@ class BlueBot(commands.Bot):
 
     async def on_command_error(self, ctx, error):
         channel = ctx.message.channel
+        mention = ctx.author.mention
 
         if isinstance(error, commands.MissingRequiredArgument):
             await self.show_cmd_help(ctx)
@@ -92,7 +93,7 @@ class BlueBot(commands.Bot):
         elif isinstance(error, commands.CommandNotFound):
             return
         elif isinstance(error, commands.CheckFailure):
-            await channel.send("You do not have permission to use that command!")
+            await channel.send("{}, You do not have permission to use that command!".format(mention))
             return
         elif isinstance(error, commands.CommandOnCooldown):
             await channel.send("This command is currently on cooldown. {}" 
